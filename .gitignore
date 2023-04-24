@@ -1,9 +1,17 @@
 apache-activemq-5.15.9/
 apache-activemq-5.15.9-bin.tar.gz
 .DS_Store
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
 ### IntelliJ IDEA ###
 .idea/
 *.iws
 *.iml
 *.ipr
+
+### VS Code ###
+.vscode/*
