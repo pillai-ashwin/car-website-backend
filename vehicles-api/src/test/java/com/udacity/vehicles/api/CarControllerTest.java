@@ -5,8 +5,12 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
+import static org.hamcrest.Matchers.equalTo;
 
 import com.udacity.vehicles.client.maps.MapsClient;
 import com.udacity.vehicles.client.prices.PriceClient;
@@ -72,11 +76,12 @@ public class CarControllerTest {
 
     /**
      * Tests for successful creation of new car in the system
+     * 
      * @throws Exception when car creation fails in the system
      */
     @Test
     public void createCar() throws Exception {
-        
+
         mvc.perform(
                 post(new URI("/cars"))
                         .content(json.write(car).getJson())
@@ -87,18 +92,19 @@ public class CarControllerTest {
 
     /**
      * Tests if the read operation appropriately returns a list of vehicles.
+     * 
      * @throws Exception if the read operation of the vehicle list fails
      */
     @Test
     public void listCars() throws Exception {
         /**
          * Add a test to check that the `get` method works by calling
-         *   the whole list of vehicles. This should utilize the car from `getCar()`
-         *   below (the vehicle will be the first in the list).
+         * the whole list of vehicles. This should utilize the car from `getCar()`
+         * below (the vehicle will be the first in the list).
          */
         mvc.perform(
                 get(new URI("/cars/"))
-                .accept(MediaType.APPLICATION_JSON_UTF8))
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
 
@@ -106,41 +112,70 @@ public class CarControllerTest {
 
     /**
      * Tests the read operation for a single car by ID.
+     * 
      * @throws Exception if the read operation for a single car fails
      */
     @Test
     public void findCar() throws Exception {
         /**
          * Add a test to check that the `get` method works by calling
-         *   a vehicle by ID. This should utilize the car from `getCar()` below.
+         * a vehicle by ID. This should utilize the car from `getCar()` below.
          */
-        
-         mvc.perform(
-            get(new URI("/cars/"+car.getId()))
-            .accept(MediaType.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
+
+        mvc.perform(
+                get(new URI("/cars/" + car.getId()))
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id", equalTo(car.getId().intValue())))
+                .andExpect(jsonPath("$.details.body", equalTo(car.getDetails().getBody())))
+                .andExpect(jsonPath("$.details.model", equalTo(car.getDetails().getModel())))
+                .andExpect(
+                        jsonPath("$.details.manufacturer.name", equalTo(car.getDetails().getManufacturer().getName())));
     }
 
     /**
      * Tests the deletion of a single car by ID.
+     * 
      * @throws Exception if the delete operation of a vehicle fails
      */
     @Test
     public void deleteCar() throws Exception {
         /**
          * Add a test to check whether a vehicle is appropriately deleted
-         *   when the `delete` method is called from the Car Controller. This
-         *   should utilize the car from `getCar()` below.
+         * when the `delete` method is called from the Car Controller. This
+         * should utilize the car from `getCar()` below.
          */
-        
-        System.out.println("Car Id INFO: "+car.getId());
-        mvc.perform(delete(new URI("/cars/"+car.getId())))
+
+        mvc.perform(delete(new URI("/cars/" + car.getId())))
                 .andExpect(status().isNoContent());
     }
 
     /**
+     * Tests the update of a single car by ID.
+     * 
+     * @throws Exception if the update operation of a vehicle fails
+     */
+    @Test
+    public void updateCar() throws Exception {
+        /**
+         * Add a test to check whether a vehicle is appropriately updated
+         * when the `put` method is called from the CarController. This
+         * should utilize the car from `getCar()` below.
+         */
+        car.setCondition(Condition.NEW);
+        mvc.perform(
+                put(new URI("/cars/" + car.getId()))
+                        .content(json.write(car).getJson())
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.condition").value(Condition.NEW.toString()));
+    }
+
+    /**
      * Creates an example Car object for use in testing.
+     * 
      * @return an example Car object
      */
     private Car getCar() {
